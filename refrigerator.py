@@ -1,25 +1,24 @@
 from decimal import Decimal
 from datetime import datetime, timedelta
 
+DATE_FORMAT = '%Y-%m-%d'
+
 def add(items, title, amount, expiration_date=None):
-    if expiration_date:
-        expiration_date_obj = datetime.strptime(expiration_date,'%Y-%m-%d').date()
-    else:
-        expiration_date_obj = expiration_date
+    """Добавляет в словарь продукты"""
+    if title not in items:
+        items[title] = []
+    expiration_date = datetime.strptime(
+        expiration_date,
+        DATE_FORMAT
+    ).date() if expiration_date else expiration_date
 
-    dict_descr_prod = {}
-    dict_descr_prod['amount'] = Decimal(str(amount))
-    dict_descr_prod['expiration_date'] = expiration_date_obj
-
-    if title in items:
-        items[title].append(dict_descr_prod)
-    else:
-        items[title] = [dict_descr_prod]
+    items[title].append({'amount': amount, 'expiration_date': expiration_date})
 
 def add_by_note(items, note):
+    """Преобразует неформатные данные"""
     prod = note.split()
     try:
-        if datetime.strptime(prod[-1], '%Y-%m-%d'):
+        if datetime.strptime(prod[-1], DATE_FORMAT):
             expiration_date = prod[-1]
             amount = prod[-2]
             title = ' '.join(prod[:-2])
@@ -30,24 +29,26 @@ def add_by_note(items, note):
         add(items, title, amount)
 
 def find(items, needle):
+    """Поиск подстроки в словаре"""
     lst_find_prod = [product for product in items if needle.lower() in product.lower()]
     return lst_find_prod
 
 
 def amount(items, needle):
+    """Считает количество продукта"""
     products_lst = find(items, needle)
     sum = 0
 
     for product in products_lst:
         if product in items:
             for i in (items[product]):
-                sum += i['amount']
+                sum += Decimal(i['amount'])
 
     return sum
 
 
 def expire(items, in_advance_days=0):
-
+    """Выводит просроченный товар и его количество"""
     current_date = datetime.today().date()
     new_date = current_date + timedelta(days=in_advance_days)
     lst_prod = []
@@ -91,6 +92,6 @@ note = add_by_note(goods, 'Egg hard 1.6')
 amount = amount(goods, 'egg')
 expire = expire(goods)
 
-# print(goods)
+print(goods)
 print(expire)
 
